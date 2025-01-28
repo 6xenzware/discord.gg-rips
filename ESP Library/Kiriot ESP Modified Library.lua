@@ -40,12 +40,7 @@ local ESP = {
 	Objects = setmetatable({}, {
 		__mode = "kv"
 	}),
-	Render = setmetatable({}, {
-		__mode = "kv"
-	}),
 	Overrides = {},
-	UseRenderValue = true,
-	RenderValue = 200
 }
 getgenv().shared.ESP = ESP
 if ... and type(...) == "table" then
@@ -61,21 +56,7 @@ local WorldToViewportPoint = cam.WorldToViewportPoint
 local PointToObjectSpace = CFrame.new().PointToObjectSpace
 local Cross = Vector3.new().Cross
 local Folder = Instance.new("Folder", game.CoreGui)
-local chars = {}
 local lastFov, lastScale = nil, nil
-for i = 17700, 17800 do
-	chars[# chars + 1] = utf8.char(i)
-end
-for i = 160, 700 do
-	chars[# chars + 1] = utf8.char(i)
-end
-function GenerateName(x)
-	local e = ""
-	for _ = 1, tonumber(x) or math.random(10, 999) do
-		e = e .. chars[math.random(1, # chars)]
-	end
-	return e
-end
 function round(number)
 	return typeof(number) == "Vector2" and Vector2.new(round(number.X), round(number.Y)) or math.floor(number)
 end
@@ -143,7 +124,7 @@ function ESP:Toggle(bool)
 					v:Remove()
 				else
 					for i, v in next, v.Components do
-						if i == "Highlight" then
+						if typeof(v) == "Instance" then
 							v.Enabled = false
 						else
 							v.Visible = false
@@ -206,11 +187,9 @@ boxBase.__index = boxBase
 function boxBase:Remove()
 	ESP.Objects[self.Object] = nil
 	for i, v in next, self.Components do
-		if i == "Highlight" then
-			v.Enabled = false
-			v:Remove()
+		if typeof(v) == "Instance" then
+			v:Destroy()
 		else
-			v.Visible = false
 			v:Remove()
 		end
 		self.Components[i] = nil
@@ -245,7 +224,7 @@ function boxBase:Update()
 	end
 	if not allow then
 		for i, v in next, self.Components do
-			if i == "Highlight" then
+			if typeof(v) == "Instance" then
 				v.Enabled = false
 			else
 				v.Visible = false
@@ -264,7 +243,7 @@ function boxBase:Update()
 	local distance = math.floor((cam.CFrame.Position - cf.Position).magnitude)
 	if self.Player and ESP.UseMeDistance and distance > ESP.MaxMeDistance then
 		for i, v in next, self.Components do
-			if i == "Highlight" then
+			if typeof(v) == "Instance" then
 				v.Enabled = false
 			else
 				v.Visible = false
@@ -595,7 +574,7 @@ function ESP:Add(obj, options)
 	h.FillColor = ESP.Color
 	h.OutlineColor = ESP.ChamsOutlineColor
 	h.DepthMode = 0
-	h.Name = GenerateName(x)
+	h.Name = "Too Geeked Up"
 	h.Parent = Folder
 	h.Adornee = obj
 	box.Components["Highlight"] = h
@@ -691,7 +670,7 @@ for i, v in next, Players:GetPlayers() do
 		PlayerAdded(v)
 	end
 end
-ESP.OnRenderStepped = game:GetService("RunService"):BindToRenderStep("ESP", (ESP.UseRenderValue and ESP.RenderValue) or Enum.RenderPriority.Camera.Value + 1, function()
+ESP.OnRenderStepped = game:GetService("RunService").PostSimulation:Connect(function()
 	cam = workspace.CurrentCamera
 	for i, v in (ESP.Enabled and pairs or ipairs)(ESP.Objects) do
 		if v.Update then
@@ -699,11 +678,6 @@ ESP.OnRenderStepped = game:GetService("RunService"):BindToRenderStep("ESP", (ESP
 			if not s then
 				warn("[EU]", e, v.Object:GetFullName())
 			end
-		end
-	end
-	for i, v in (pairs or ipairs)(ESP.Render) do 
-		if v.Update then
-			local s, e = pcall(v.Update, v)
 		end
 	end
 end)
