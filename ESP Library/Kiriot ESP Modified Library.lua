@@ -41,6 +41,8 @@ local ESP = {
 		__mode = "kv"
 	}),
 	Overrides = {},
+	UseRender = false,
+	Render = {},
 }
 getgenv().shared.ESP = ESP
 if ... and type(...) == "table" then
@@ -678,6 +680,12 @@ ESP.OnRenderStepped = game:GetService("RunService").PostSimulation:Connect(funct
 			if not s then
 				warn("[EU]", e, v.Object:GetFullName())
 			end
+		end
+	end
+        for name, func in (ESP.UseRender and pairs or ipairs)(ESP.Render) do
+		local success, err = pcall(func)
+		if not success then
+			warn("Error in function " .. name .. ": " .. err)
 		end
 	end
 end)
