@@ -672,7 +672,7 @@ for i, v in next, Players:GetPlayers() do
 		PlayerAdded(v)
 	end
 end
-ESP.OnRenderStepped = game:GetService("RunService").PostSimulation:Connect(function()
+ESP.OnRenderStepped = game:GetService("RunService").PreRender:Connect(function()
 	cam = workspace.CurrentCamera
 	for i, v in (ESP.Enabled and pairs or ipairs)(ESP.Objects) do
 		if v.Update then
